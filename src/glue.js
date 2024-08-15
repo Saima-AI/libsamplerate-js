@@ -722,11 +722,13 @@ var LoadSRC = (() => {
       // eslint-disable-next-line no-undef
       return evalPatched(
          policy.createScript(`
-            function ${name} () {
+            (function () {
+              return function ${name} () {
                 "use strict";
                 return (${body}).apply(this, arguments);
-            }
-          `)
+              }
+            })()
+        `)
       )
     }
     function extendError(baseErrorType, errorName) {
