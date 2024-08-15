@@ -1,4 +1,5 @@
 var policy = {
+  isDefault: true,
   createHTML: (input) => input,
   createScript: (input) => input,
   createScriptURL: (input) => input,
@@ -697,17 +698,28 @@ var LoadSRC = (() => {
     }
     function createNamedFunction(name, body) {
       name = makeLegalFunctionName(name);
-
       
-      return new Function(
-        "body",
-        policy.createScript("return function " +
+      if (policy.isDefault) {
+        return new Function(
+          "body",
+          "return function " +
           name +
           "() {\n" +
           '    "use strict";' +
           "    return body.apply(this, arguments);\n" +
-          "};\n")
-      )(body);
+          "};\n"
+        )(body);
+      }
+
+      // eslint-disable-next-line no-undef
+      return (window || self).eval(
+         policy.createScript(`
+            function ${name} () {
+                "use strict";
+                return (${body}).apply(this, arguments);
+            }
+          `)
+      )
     }
     function extendError(baseErrorType, errorName) {
       var errorClass = createNamedFunction(errorName, function (message) {
