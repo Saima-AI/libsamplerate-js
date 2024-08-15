@@ -974,7 +974,25 @@ var LoadSRC = (() => {
         destructorFunction: null,
       });
     }
+    // function new_(constructor, argumentList) {
+    //   if (!(constructor instanceof Function)) {
+    //     throw new TypeError(
+    //       "new_ called with constructor type " +
+    //         typeof constructor +
+    //         " which is not a function"
+    //     );
+    //   }
+    //   var dummy = createNamedFunction(
+    //     constructor.name || "unknownFunctionName",
+    //     function () {}
+    //   );
+    //   dummy.prototype = constructor.prototype;
+    //   var obj = new dummy();
+    //   var r = constructor.apply(obj, argumentList);
+    //   return r instanceof Object ? r : obj;
+    // }
     function new_(constructor, argumentList) {
+      console.log('ArgumentList', argumentList);
       if (!(constructor instanceof Function)) {
         throw new TypeError(
           "new_ called with constructor type " +
@@ -982,14 +1000,31 @@ var LoadSRC = (() => {
             " which is not a function"
         );
       }
-      var dummy = createNamedFunction(
-        constructor.name || "unknownFunctionName",
-        function () {}
-      );
-      dummy.prototype = constructor.prototype;
-      var obj = new dummy();
-      var r = constructor.apply(obj, argumentList);
-      return r instanceof Object ? r : obj;
+    
+      var fnBody = argumentList.pop();
+    
+    
+      eval(
+        policy.createScript(`
+        (function (){
+            var dummy = (function () {
+              return function ${constructor.name} () {
+                "use strict";
+                return (function () {}).apply(this, arguments);
+              }
+            })()
+    
+            var obj = new dummy();
+    
+    
+            var r = (function(){
+              ${fnBody}
+            }).apply(obj, ${JSON.stringify(argumentList)});
+    
+            return r instanceof Object ? r : obj;
+          })()
+       `)
+       )
     }
     function runDestructors(destructors) {
       while (destructors.length) {
