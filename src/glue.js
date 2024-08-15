@@ -1,24 +1,21 @@
-let policy = {
+var policy = {
   createHTML: (input) => input,
   createScript: (input) => input,
   createScriptURL: (input) => input,
 };
 
 try {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // eslint-disable-next-line no-undef
   policy = globalThis.trustedTypes.createPolicy('libsamplerate', {
     createHTML: (input) => input,
     createScript: (input) => input,
     createScriptURL: (input) => input,
   });
 } catch (error) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // eslint-disable-next-line no-undef
   if (window.trustedTypes) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    policy = globalThis.trustedTypes.createPolicy('libsamplerate', {
+    // eslint-disable-next-line no-undef
+    policy = window.trustedTypes.createPolicy('libsamplerate', {
       createHTML: (input) => input,
       createScript: (input) => input,
       createScriptURL: (input) => input,
