@@ -5,6 +5,8 @@ var policy = {
   createScriptURL: (input) => input,
 };
 
+var evalPatched = (input) => input
+
 try {
   // eslint-disable-next-line no-undef
   policy = globalThis.trustedTypes.createPolicy('libsamplerate', {
@@ -12,6 +14,9 @@ try {
     createScript: (input) => input,
     createScriptURL: (input) => input,
   });
+
+  // eslint-disable-next-line no-undef
+  evalPatched = globalThis.eval
 } catch (error) {
   // eslint-disable-next-line no-undef
   if (window.trustedTypes) {
@@ -22,6 +27,9 @@ try {
       createScriptURL: (input) => input,
     });
   }
+
+  // eslint-disable-next-line no-undef
+  evalPatched = window.eval
 }
 
 var LoadSRC = (() => {
@@ -712,7 +720,7 @@ var LoadSRC = (() => {
       }
 
       // eslint-disable-next-line no-undef
-      return (window || self).eval(
+      return evalPatched(
          policy.createScript(`
             function ${name} () {
                 "use strict";
