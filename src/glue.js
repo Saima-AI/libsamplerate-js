@@ -87,14 +87,14 @@ var LoadSRC = (() => {
       {
         read_ = (url) => {
           var xhr = new XMLHttpRequest();
-          xhr.open("GET", url, false);
+          xhr.open("GET", policy.createScriptURL(url), false);
           xhr.send(null);
           return xhr.responseText;
         };
         if (ENVIRONMENT_IS_WORKER) {
           readBinary = (url) => {
             var xhr = new XMLHttpRequest();
-            xhr.open("GET", url, false);
+            xhr.open("GET", policy.createScriptURL(url), false);
             xhr.responseType = "arraybuffer";
             xhr.send(null);
             return new Uint8Array(xhr.response);
@@ -102,7 +102,7 @@ var LoadSRC = (() => {
         }
         readAsync = (url, onload, onerror) => {
           var xhr = new XMLHttpRequest();
-          xhr.open("GET", url, true);
+          xhr.open("GET", policy.createScriptURL(url), true);
           xhr.responseType = "arraybuffer";
           xhr.onload = () => {
             if (xhr.status == 200 || (xhr.status == 0 && xhr.response)) {
@@ -448,7 +448,7 @@ var LoadSRC = (() => {
     function getBinaryPromise() {
       if (!wasmBinary && (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER)) {
         if (typeof fetch == "function") {
-          return fetch(wasmBinaryFile, { credentials: "same-origin" })
+          return fetch(policy.createScriptURL(wasmBinaryFile), { credentials: "same-origin" })
             .then(function (response) {
               if (!response["ok"]) {
                 throw (
@@ -501,7 +501,7 @@ var LoadSRC = (() => {
           !isDataURI(wasmBinaryFile) &&
           typeof fetch == "function"
         ) {
-          return fetch(wasmBinaryFile, { credentials: "same-origin" }).then(
+          return fetch(policy.createScriptURL(wasmBinaryFile), { credentials: "same-origin" }).then(
             function (response) {
               var result = WebAssembly.instantiateStreaming(response, info);
               return result.then(receiveInstantiationResult, function (reason) {
