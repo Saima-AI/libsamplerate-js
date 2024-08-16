@@ -974,25 +974,7 @@ var LoadSRC = (() => {
         destructorFunction: null,
       });
     }
-    // function new_(constructor, argumentList) {
-    //   if (!(constructor instanceof Function)) {
-    //     throw new TypeError(
-    //       "new_ called with constructor type " +
-    //         typeof constructor +
-    //         " which is not a function"
-    //     );
-    //   }
-    //   var dummy = createNamedFunction(
-    //     constructor.name || "unknownFunctionName",
-    //     function () {}
-    //   );
-    //   dummy.prototype = constructor.prototype;
-    //   var obj = new dummy();
-    //   var r = constructor.apply(obj, argumentList);
-    //   return r instanceof Object ? r : obj;
-    // }
-    function new_(constructor, argumentList) {
-      console.log('ArgumentList', argumentList);
+    function oldNew_(constructor, argumentList) {
       if (!(constructor instanceof Function)) {
         throw new TypeError(
           "new_ called with constructor type " +
@@ -1000,11 +982,30 @@ var LoadSRC = (() => {
             " which is not a function"
         );
       }
+      var dummy = createNamedFunction(
+        constructor.name || "unknownFunctionName",
+        function () {}
+      );
+      dummy.prototype = constructor.prototype;
+      var obj = new dummy();
+      var r = constructor.apply(obj, argumentList);
+      return r instanceof Object ? r : obj;
+    }
+    function new_(constructor, argumentList) {
+      if (!(constructor instanceof Function)) {
+        throw new TypeError(
+          "new_ called with constructor type " +
+            typeof constructor +
+            " which is not a function"
+        );
+      }
+
+      if (policy.isDefault) return oldNew_(constructor, argumentList);
     
-      var fnBody = argumentList.pop();
+      var fnBody = argumentList[argumentList.length - 1];
+      var argsList = argumentList.slice(0, -1);
     
-    
-      eval(
+      return evalPatched(
         policy.createScript(`
         (function (){
             var dummy = (function () {
@@ -1016,12 +1017,13 @@ var LoadSRC = (() => {
     
             var obj = new dummy();
     
-    
-            var r = (function(){
+            return (function(${argsList.join(',')}){
               ${fnBody}
-            }).apply(obj, ${JSON.stringify(argumentList)});
+            })
+              
+            //.apply(obj, ${JSON.stringify(argsList)});
     
-            return r instanceof Object ? r : obj;
+            //return r instanceof Object ? r : obj;
           })()
        `)
        )
